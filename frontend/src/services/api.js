@@ -2,6 +2,9 @@
 import axios from 'axios';
 
 const API_URL = "https://student-management-app-1-mfw3.onrender.com";
+console.log("🎯 USING BACKEND:", API_URL); // Add this line
+
+// ... rest of code
 
 // ✅ GET all students
 export const getStudents = async () => {
