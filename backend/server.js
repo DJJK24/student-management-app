@@ -19,17 +19,14 @@ app.use(express.json());
 // DNS fix
 dns.setServers(['8.8.8.8', '1.1.1.1']);
 
+
+
 // ... rest of your code
 // Connect to MongoDB
-mongoose.connect(process.env.MONGO_URI)
-  .then(() => {
-    console.log("✅ MongoDB Atlas connected!");
-    console.log("✅ Database:", mongoose.connection.db.databaseName);
-  })
-  .catch(err => {
-    console.error("❌ Connection error:", err.message);
-  });
-
+mongoose.connect("mongodb+srv://acetianscrew_db_user:NP9tq9SLxSLOzhWS@cluster0.soktwfv.mongodb.net/studentDB")
+  .then(() => console.log("✅ MongoDB connected!"))
+  .catch(err => console.error("❌ Connection error:", err.message));
+  
 // Routes
 app.use("/students", require("./routes/studentRoutes"));
 
