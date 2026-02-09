@@ -15,8 +15,8 @@ router.get('/', async (req, res) => {
 
 // POST create student
 router.post('/', async (req, res) => {
-  console.log('📨 Received POST data:', req.body);
-  
+  console.log('Received POST data:', req.body);
+
   // Validate required fields
   if (!req.body.name || !req.body.email || !req.body.course) {
     return res.status(400).json({
@@ -24,7 +24,7 @@ router.post('/', async (req, res) => {
       required: ['name', 'email', 'course']
     });
   }
-  
+
   try {
     const student = new Student({
       name: req.body.name,
@@ -33,12 +33,12 @@ router.post('/', async (req, res) => {
     });
     
     const savedStudent = await student.save();
-    console.log('✅ Student saved:', savedStudent);
+    console.log('Student saved:', savedStudent);
     res.status(201).json(savedStudent);
-    
+
   } catch (error) {
-    console.error('❌ POST error:', error.message);
-    
+    console.error('POST error:', error.message);
+
     // Handle duplicate email error
     if (error.code === 11000) {
       return res.status(400).json({
@@ -46,7 +46,7 @@ router.post('/', async (req, res) => {
         field: 'email'
       });
     }
-    
+
     // Handle validation errors
     if (error.name === 'ValidationError') {
       const errors = {};
@@ -55,7 +55,7 @@ router.post('/', async (req, res) => {
       });
       return res.status(400).json({ errors });
     }
-    
+
     res.status(400).json({ error: error.message });
   }
 });

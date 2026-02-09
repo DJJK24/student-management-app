@@ -5,9 +5,9 @@ require("dotenv").config();
 
 const app = express();
 
-// FIXED CORS - Allow all origins for now
+// CORS - Allow all origins
 app.use(cors({
-  origin: '*',  // Allow ALL
+  origin: '*',
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   credentials: true
 }));
@@ -18,8 +18,8 @@ app.use(express.json());
 const MONGO_URI = process.env.MONGO_URI || "mongodb+srv://acetianscrew_db_user:NP9tq9SLxSLOzhWS@cluster0.soktwfv.mongodb.net/studentDB";
 
 mongoose.connect(MONGO_URI)
-  .then(() => console.log("✅ MongoDB connected!"))
-  .catch(err => console.error("❌ Connection error:", err.message));
+  .then(() => console.log("MongoDB connected!"))
+  .catch(err => console.error("Connection error:", err.message));
 
 // Routes
 app.use("/students", require("./routes/studentRoutes"));
@@ -33,5 +33,5 @@ app.get("/", (req, res) => {
 
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
-  console.log(`🚀 Server running on port ${PORT}`);
+  console.log(`Server running on port ${PORT}`);
 });
