@@ -1,7 +1,7 @@
 // frontend/src/services/api.js
 import axios from 'axios';
 
-const API_URL = 'http://localhost:5000';
+const API_URL = "https://student-management-app-1-mfw3.onrender.com";
 
 // ✅ GET all students
 export const getStudents = async () => {
