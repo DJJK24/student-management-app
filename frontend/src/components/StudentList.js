@@ -18,11 +18,10 @@ function StudentList() {
       const data = await getStudents();
       setStudents(data || []);
     } catch (error) {
-      console.error("Error fetching students:", error);
-      alert("Failed to load students");
-    } finally {
-      setLoading(false);
-    }
+  console.error("Error fetching students:", error);
+  // Don't show alert - just log to console
+  // Students will show when API works
+}
   };
 
   useEffect(() => {
