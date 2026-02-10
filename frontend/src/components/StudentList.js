@@ -76,12 +76,12 @@ function StudentList() {
     }
   };
 
-  // 🎯 DEBUG MODE: ALWAYS SHOW STUDENTS (temporary fix)
+  // 🎯 ALWAYS SHOW STUDENTS (no empty state for now)
   return (
     <div className="list-container">
       <h2>📋 Student List</h2>
       
-      {/* DEBUG INFO - will show in yellow */}
+      {/* DEBUG INFO */}
       <div style={{background: 'yellow', padding: '10px', marginBottom: '20px', borderRadius: '5px'}}>
         <strong>🔧 DEBUG MODE:</strong> 
         <div>Students in state: <strong>{students.length}</strong></div>
@@ -89,105 +89,107 @@ function StudentList() {
         <div>API Working: <strong style={{color: 'green'}}>✅ Yes (check console)</strong></div>
       </div>
       
-      <div className="list-header">
-        <h2>Student List</h2>
-        <div className="stats">
-          <span className="stat-badge">{students.length} Students</span>
+      {/* LOADING STATE */}
+      {loading ? (
+        <div className="loading-container">
+          <div className="spinner"></div>
+          <p>Loading students...</p>
         </div>
-      </div>
-
-      <div className="students-grid">
-        {students.map((student) => (
-          <div className="student-card" key={student._id}>
-            {editId === student._id ? (
-              <div className="edit-mode">
-                <div className="edit-header">
-                  <h3>Edit Student</h3>
-                </div>
-                <div className="edit-form">
-                  <input
-                    name="name"
-                    value={editData.name}
-                    onChange={handleEditChange}
-                    placeholder="Student Name"
-                    className="edit-input"
-                  />
-                  <input
-                    name="email"
-                    value={editData.email}
-                    onChange={handleEditChange}
-                    placeholder="Email Address"
-                    className="edit-input"
-                  />
-                  <input
-                    name="course"
-                    value={editData.course}
-                    onChange={handleEditChange}
-                    placeholder="Course Name"
-                    className="edit-input"
-                  />
-                  <div className="edit-actions">
-                    <button className="save-btn" onClick={() => saveEdit(student._id)}>
-                      Save
-                    </button>
-                    <button className="cancel-btn" onClick={() => setEditId(null)}>
-                      Cancel
-                    </button>
-                  </div>
-                </div>
-              </div>
-            ) : (
-              <>
-                <div className="student-header">
-                  <div className="avatar">
-                    {student.name?.charAt(0)?.toUpperCase() || '?'}
-                  </div>
-                  <div className="student-info">
-                    <h3 className="student-name">{student.name || 'No Name'}</h3>
-                    <p className="student-email">{student.email || 'No Email'}</p>
-                  </div>
-                </div>
-
-                <div className="student-details">
-                  <div className="course-badge">
-                    {student.course || 'No Course'}
-                  </div>
-                  {student.createdAt && (
-                    <div className="date-added">
-                      <small>{new Date(student.createdAt).toLocaleDateString()}</small>
-                    </div>
-                  )}
-                </div>
-
-                <div className="student-actions">
-                  <button 
-                    className="action-btn edit-action" 
-                    onClick={() => startEdit(student)}
-                    title="Edit"
-                  >
-                    Edit
-                  </button>
-                  <button 
-                    className="action-btn delete-action" 
-                    onClick={() => handleDelete(student._id)}
-                    title="Delete"
-                  >
-                    Delete
-                  </button>
-                </div>
-              </>
-            )}
+      ) : (
+        /* ALWAYS SHOW STUDENTS GRID (NO EMPTY STATE) */
+        <>
+          <div className="list-header">
+            <h2>Student List</h2>
+            <div className="stats">
+              <span className="stat-badge">{students.length} Students</span>
+            </div>
           </div>
-        ))}
-      </div>
-      
-      {/* DEBUG: Show if array is empty */}
-      {students.length === 0 && (
-        <div style={{background: 'orange', padding: '20px', marginTop: '20px', textAlign: 'center'}}>
-          <h3>⚠️ DEBUG: Empty Students Array</h3>
-          <p>The students array is empty in React state, but API returns data.</p>
-          <p>Check console for fetch results.</p>
-        </div>
+
+          <div className="students-grid">
+            {students.map((student) => (
+              <div className="student-card" key={student._id} style={{border: '2px solid #4CAF50'}}>
+                {editId === student._id ? (
+                  <div className="edit-mode">
+                    <div className="edit-header">
+                      <h3>Edit Student</h3>
+                    </div>
+                    <div className="edit-form">
+                      <input
+                        name="name"
+                        value={editData.name}
+                        onChange={handleEditChange}
+                        placeholder="Student Name"
+                        className="edit-input"
+                      />
+                      <input
+                        name="email"
+                        value={editData.email}
+                        onChange={handleEditChange}
+                        placeholder="Email Address"
+                        className="edit-input"
+                      />
+                      <input
+                        name="course"
+                        value={editData.course}
+                        onChange={handleEditChange}
+                        placeholder="Course Name"
+                        className="edit-input"
+                      />
+                      <div className="edit-actions">
+                        <button className="save-btn" onClick={() => saveEdit(student._id)}>
+                          Save
+                        </button>
+                        <button className="cancel-btn" onClick={() => setEditId(null)}>
+                          Cancel
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                ) : (
+                  <>
+                    <div className="student-header">
+                      <div className="avatar">
+                        {student.name?.charAt(0)?.toUpperCase() || '?'}
+                      </div>
+                      <div className="student-info">
+                        <h3 className="student-name">{student.name || 'No Name'}</h3>
+                        <p className="student-email">{student.email || 'No Email'}</p>
+                      </div>
+                    </div>
+
+                    <div className="student-details">
+                      <div className="course-badge">
+                        {student.course || 'No Course'}
+                      </div>
+                      {student.createdAt && (
+                        <div className="date-added">
+                          <small>{new Date(student.createdAt).toLocaleDateString()}</small>
+                        </div>
+                      )}
+                    </div>
+
+                    <div className="student-actions">
+                      <button 
+                        className="action-btn edit-action" 
+                        onClick={() => startEdit(student)}
+                        title="Edit"
+                      >
+                        Edit
+                      </button>
+                      <button 
+                        className="action-btn delete-action" 
+                        onClick={() => handleDelete(student._id)}
+                        title="Delete"
+                      >
+                        Delete
+                      </button>
+                    </div>
+                  </>
+                )}
+              </div>
+            ))}
+          </div>
+        </>
       )}
     </div>
   );
