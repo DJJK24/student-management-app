@@ -11,7 +11,19 @@ const api = axios.create({
   },
 });
 
-export const getStudents = () => api.get('/students');
+// ✅ CORRECTED getStudents - returns data array, not response object
+export const getStudents = async () => {
+  try {
+    const response = await api.get('/students');
+    console.log("API Response data:", response.data); // Debug
+    return response.data; // Returns the array directly
+  } catch (error) {
+    console.error("API Error:", error);
+    throw error;
+  }
+};
+
+// Other functions can stay as-is
 export const createStudent = (student) => api.post('/students', student);
 export const updateStudent = (id, student) => api.put(`/students/${id}`, student);
 export const deleteStudent = (id) => api.delete(`/students/${id}`);
