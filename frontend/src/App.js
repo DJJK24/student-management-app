@@ -7,10 +7,11 @@ const PORT = process.env.PORT || 3000;
 
 /* ===== CORS SETUP ===== */
 app.use(cors({
-  origin: "https://peppy-sprite-ad724c.netlify.app", // allow only your frontend
+  origin: "https://student-management-app-dj.netlify.app",
   methods: ["GET", "POST", "PUT", "DELETE"],
   allowedHeaders: ["Content-Type"]
 }));
+
 app.options("*", cors()); // handle preflight requests
 
 app.use(express.json());
