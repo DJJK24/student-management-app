@@ -6,28 +6,30 @@ require('dotenv').config();
 const app = express();
 
 // ========== FIXED CORS CONFIGURATION ==========
-// REMOVE the duplicate app.use(cors()) line
-// Use ONLY ONE of these options:
-
-// OPTION 1: Allow specific domains (Recommended)
+// Use ONLY OPTION 1 (remove the commented OPTION 2)
 app.use(cors({
   origin: [
     'https://peppy-sprite-ad724c.netlify.app',        // NEW domain
-    'https://fantastic-pithivier-277f32.netlify.app', // OLD domain  
     'http://localhost:3000'                           // Local dev
   ],
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS']
 }));
 
-// OPTION 2: Allow ALL domains (For testing - simpler)
-// app.use(cors());
+// CRITICAL: Handle OPTIONS preflight requests
+app.options('*', cors());  // Add this line!
 
-// Also add these headers
+// Additional CORS headers middleware
 app.use((req, res, next) => {
   res.header('Access-Control-Allow-Origin', '*');
   res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
   res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization, Origin, X-Requested-With, Accept');
+  
+  // Handle preflight requests
+  if (req.method === 'OPTIONS') {
+    return res.status(200).end();  // Add this line!
+  }
+  
   next();
 });
 // ========== END CORS FIX ==========
