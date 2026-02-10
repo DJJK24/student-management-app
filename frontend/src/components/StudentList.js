@@ -1,96 +1,6 @@
-// ==================== PERMANENT OVERRIDE SYSTEM ====================
-// This system ensures students ALWAYS show, eliminating empty state bugs forever
-const setupPermanentOverride = () => {
-  // Only run in browser environment
-  if (typeof window === 'undefined') return;
-  
-  console.log("🛡️ Initializing permanent override system...");
-  
-  const applyOverride = () => {
-    // Prevent running too frequently
-    const lastRun = localStorage.getItem('lastOverrideRun');
-    if (lastRun && Date.now() - Number(lastRun) < 3000) return;
-    
-    // 1. Remove empty states (primary bug fix)
-    const emptyStates = document.querySelectorAll('.empty-state');
-    if (emptyStates.length > 0) {
-      console.log(`🛡️ Removing ${emptyStates.length} empty state(s)`);
-      emptyStates.forEach(el => {
-        el.style.opacity = '0';
-        setTimeout(() => el.remove(), 300);
-      });
-    }
-    
-    // 2. Check if we need to manually display students
-    const container = document.querySelector('.list-container');
-    const hasStudentsGrid = container?.querySelector('.students-grid');
-    const hasStudentCards = container?.querySelectorAll('.student-card').length > 0;
-    
-    // If container exists but no students are showing, fetch and display
-    if (container && !hasStudentCards) {
-      console.log("🛡️ No students showing, fetching from API...");
-      
-      // UPDATED: Using correct Render URL
-      fetch('https://student-management-app-1-mfw3.onrender.com/students')
-        .then(r => {
-          if (!r.ok) throw new Error(`API error: ${r.status}`);
-          return r.json();
-        })
-        .then(students => {
-          // ... rest of the DOM manipulation code ...
-        })
-        .catch(err => {
-          console.log('🛡️ API fetch failed:', err.message);
-          // Still ensure empty state is gone
-          container.innerHTML = `
-            <h2>📋 Student List</h2>
-            <div style="text-align: center; padding: 40px; color: #666;">
-              <div style="font-size: 50px; margin-bottom: 20px;">🔄</div>
-              <h3 style="color: #333;">Loading Students</h3>
-              <p>Connecting to backend...</p>
-            </div>
-          `;
-        });
-    }
-    
-    localStorage.setItem('lastOverrideRun', Date.now());
-  };
-  
-  // Run immediately
-  setTimeout(applyOverride, 100);
-  
-  // Run every 3 seconds
-  setInterval(applyOverride, 3000);
-  
-  // Run when page becomes visible
-  document.addEventListener('visibilitychange', () => {
-    if (!document.hidden) {
-      setTimeout(applyOverride, 500);
-    }
-  });
-  
-  // Mark as initialized
-  localStorage.setItem('overrideSystemInitialized', 'true');
-  console.log("🛡️ Permanent override system activated");
-};
-
-// Initialize the override system
-if (typeof window !== 'undefined') {
-  // Run once when page loads
-  if (!localStorage.getItem('overrideSystemInitialized')) {
-    setupPermanentOverride();
-  } else {
-    // System already initialized, just run cleanup
-    setTimeout(() => {
-      document.querySelectorAll('.empty-state').forEach(el => el.remove());
-    }, 100);
-  }
-}
-
-// ==================== MAIN REACT COMPONENT ====================
+// src/components/StudentList.js - REMOVE THE PERMANENT OVERRIDE SYSTEM AT THE TOP
 import { useEffect, useState } from "react";
-// FIXED IMPORT: Changed from "../services/api" to "../api"
-import { fetchStudents, deleteStudent, updateStudent } from "../api";
+import { fetchStudents, deleteStudent, updateStudent } from "../api"; // CHANGED: from "../services/api" to "../api"
 import "./StudentList.css";
 
 function StudentList() {
@@ -103,20 +13,11 @@ function StudentList() {
     course: "",
   });
 
-  // RENAMED FUNCTION to avoid conflict with import
   const loadStudents = async () => {
     setLoading(true);
     try {
-      // Using the imported fetchStudents function
       const data = await fetchStudents();
       setStudents(data || []);
-      
-      // Force-clear any empty states after data loads
-      setTimeout(() => {
-        const emptyStates = document.querySelectorAll('.empty-state');
-        emptyStates.forEach(el => el.remove());
-      }, 100);
-      
     } catch (error) {
       console.error("Error fetching students:", error);
     } finally {
@@ -125,24 +26,14 @@ function StudentList() {
   };
 
   useEffect(() => {
-    loadStudents(); // Changed from fetchStudents()
-    
-    // Additional safety: periodic check for empty states
-    const interval = setInterval(() => {
-      if (students.length > 0) {
-        const emptyStates = document.querySelectorAll('.empty-state');
-        emptyStates.forEach(el => el.remove());
-      }
-    }, 2000);
-    
-    return () => clearInterval(interval);
+    loadStudents();
   }, []);
 
   const handleDelete = async (id) => {
     if (window.confirm("Are you sure you want to delete this student?")) {
       try {
         await deleteStudent(id);
-        loadStudents(); // Updated to use loadStudents
+        loadStudents();
       } catch (error) {
         console.error("Error deleting student:", error);
         alert("Failed to delete student");
@@ -167,14 +58,13 @@ function StudentList() {
     try {
       await updateStudent(id, editData);
       setEditId(null);
-      loadStudents(); // Updated to use loadStudents
+      loadStudents();
     } catch (error) {
       console.error("Error updating student:", error);
       alert("Failed to update student");
     }
   };
 
-  // SIMPLE RENDERING - NO EMPTY STATE LOGIC
   return (
     <div className="list-container">
       <h2>📋 Student List</h2>
@@ -193,7 +83,6 @@ function StudentList() {
             </div>
           </div>
           
-          {/* ALWAYS RENDER STUDENTS GRID */}
           <div className="students-grid">
             {students.map((student) => (
               <div className="student-card" key={student._id}>

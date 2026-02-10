@@ -1,7 +1,6 @@
-// NEW CODE - CORRECT ✅
+// src/api.js
 import axios from 'axios';
 
-// Use your Render backend URL
 const API_URL = 'https://student-management-app-1-mfw3.onrender.com/students';
 
 export const fetchStudents = async () => {
@@ -24,7 +23,6 @@ export const addStudent = async (student) => {
   }
 };
 
-// If you have update and delete functions, fix them too:
 export const updateStudent = async (id, student) => {
   try {
     const response = await axios.put(`${API_URL}/${id}`, student);
