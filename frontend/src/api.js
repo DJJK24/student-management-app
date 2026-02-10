@@ -1,4 +1,3 @@
-// src/api.js
 import axios from 'axios';
 
 const API_URL = 'https://student-management-app-1-mfw3.onrender.com/students';
