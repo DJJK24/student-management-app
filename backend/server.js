@@ -1,6 +1,9 @@
 const express = require("express");
-const mongoose = require("mongoose");
 const cors = require("cors");
+
+const mongoose = require("mongoose");
+const Student = require("./models/Student");
+
 require("dotenv").config();
 
 const app = express();
@@ -25,12 +28,20 @@ app.use(express.json());
 ======================= */
 const MONGODB_URI = process.env.MONGODB_URI;
 
-mongoose.connect(MONGODB_URI, {
-  useNewUrlParser: true,
-  useUnifiedTopology: true,
-})
-.then(() => console.log("✅ MongoDB Connected"))
-.catch(err => console.error("❌ MongoDB Connection Error:", err));
+mongoose.set("bufferCommands", false);
+
+mongoose
+  .connect(process.env.MONGODB_URI, {
+    useNewUrlParser: true,
+    useUnifiedTopology: true,
+    serverSelectionTimeoutMS: 5000,
+  })
+  .then(() => {
+    console.log("✅ MongoDB Connected");
+  })
+  .catch((err) => {
+    console.error("❌ MongoDB Connection Error:", err.message);
+  });
 
 /* =======================
    STUDENT SCHEMA
