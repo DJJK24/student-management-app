@@ -1,6 +1,6 @@
 // frontend/src/components/StudentForm.js
 import React, { useState } from 'react';
-import { addStudent } from '../services/api';
+import { addStudent } from '../api'; // CHANGED: from '../services/api' to '../api'
 import './StudentForm.css';
 
 function StudentForm({ onStudentAdded }) {
@@ -9,9 +9,11 @@ function StudentForm({ onStudentAdded }) {
     email: '',
     course: ''
   });
+  const [loading, setLoading] = useState(false); // Added loading state
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setLoading(true);
     
     try {
       const newStudent = await addStudent(formData);
@@ -27,8 +29,10 @@ function StudentForm({ onStudentAdded }) {
       }
       
     } catch (error) {
-      console.error('Error:', error.response?.data || error.message);
-      alert(`❌ Error: ${error.response?.data?.error || 'Failed to add student'}`);
+      console.error('Error adding student:', error);
+      alert(`❌ Error: ${error.response?.data?.error || error.message || 'Failed to add student'}`);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -59,6 +63,7 @@ function StudentForm({ onStudentAdded }) {
               placeholder="Full Name"
               required
               className="form-input"
+              disabled={loading}
             />
           </div>
           
@@ -72,6 +77,7 @@ function StudentForm({ onStudentAdded }) {
               placeholder="Email Address"
               required
               className="form-input"
+              disabled={loading}
             />
           </div>
           
@@ -85,12 +91,19 @@ function StudentForm({ onStudentAdded }) {
               placeholder="Course Name"
               required
               className="form-input"
+              disabled={loading}
             />
           </div>
           
-          <button type="submit" className="submit-button">
-            <span className="button-icon">➕</span>
-            Add Student
+          <button 
+            type="submit" 
+            className="submit-button"
+            disabled={loading}
+          >
+            <span className="button-icon">
+              {loading ? '⏳' : '➕'}
+            </span>
+            {loading ? 'Adding Student...' : 'Add Student'}
           </button>
         </form>
         

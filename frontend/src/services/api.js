@@ -1,31 +1,46 @@
+// NEW CODE - CORRECT ✅
 import axios from 'axios';
 
-// ✅ USE RENDER URL
-const API_URL = "https://student-management-app-1-mfw3.onrender.com";
+// Use your Render backend URL
+const API_URL = 'https://student-management-app-1-mfw3.onrender.com/students';
 
-const api = axios.create({
-  baseURL: API_URL,
-  timeout: 15000, // 15 seconds for slow Render free tier
-  headers: {
-    'Content-Type': 'application/json',
-  },
-});
-
-// ✅ CORRECTED getStudents - returns data array, not response object
-export const getStudents = async () => {
+export const fetchStudents = async () => {
   try {
-    const response = await api.get('/students');
-    console.log("API Response data:", response.data); // Debug
-    return response.data; // Returns the array directly
+    const response = await axios.get(API_URL);
+    return response.data;
   } catch (error) {
-    console.error("API Error:", error);
+    console.error('Error fetching students:', error);
     throw error;
   }
 };
 
-// Other functions can stay as-is
-export const createStudent = (student) => api.post('/students', student);
-export const updateStudent = (id, student) => api.put(`/students/${id}`, student);
-export const deleteStudent = (id) => api.delete(`/students/${id}`);
+export const addStudent = async (student) => {
+  try {
+    const response = await axios.post(API_URL, student);
+    return response.data;
+  } catch (error) {
+    console.error('Error adding student:', error);
+    throw error;
+  }
+};
 
-export default api;
+// If you have update and delete functions, fix them too:
+export const updateStudent = async (id, student) => {
+  try {
+    const response = await axios.put(`${API_URL}/${id}`, student);
+    return response.data;
+  } catch (error) {
+    console.error('Error updating student:', error);
+    throw error;
+  }
+};
+
+export const deleteStudent = async (id) => {
+  try {
+    const response = await axios.delete(`${API_URL}/${id}`);
+    return response.data;
+  } catch (error) {
+    console.error('Error deleting student:', error);
+    throw error;
+  }
+};
