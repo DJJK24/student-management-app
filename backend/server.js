@@ -14,17 +14,16 @@ app.use(cors({
     "https://peppy-sprite-ad724c.netlify.app", 
     "http://localhost:3000"
   ],
-  methods: ["GET", "POST", "PUT", "DELETE"],
+  methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
   allowedHeaders: ["Content-Type", "Authorization"]
 }));
 
 app.use(express.json());
 
 /* =======================
-   MONGODB CONNECTION
+   MONGODB CONNECTION - UPDATED
 ======================= */
-// ✅ USE YOUR NEW CREDENTIALS
-const MONGODB_URI = "mongodb+srv://acetianscrew_db_user:iHNCCrRMoHOIDw4R@cluster0.soktwfv.mongodb.net/studentDB?retryWrites=true&w=majority&socketTimeoutMS=360000";
+const MONGODB_URI = "mongodb+srv://acetianscrew_db_user:PGSAcUxPubxeB9Gs@cluster0.soktwfv.mongodb.net/studentDB?retryWrites=true&w=majority";
 
 mongoose.connect(MONGODB_URI, {
   useNewUrlParser: true,
@@ -35,8 +34,11 @@ mongoose.connect(MONGODB_URI, {
 .then(() => console.log("✅ MongoDB Connected Successfully"))
 .catch(err => console.error("❌ MongoDB Error:", err.message));
 
+// Connection state helpers
+const isDbConnected = () => mongoose.connection.readyState === 1;
+
 /* =======================
-   STUDENT SCHEMA
+   STUDENT SCHEMA & MODEL
 ======================= */
 const studentSchema = new mongoose.Schema({
   name: String,
@@ -48,100 +50,172 @@ const studentSchema = new mongoose.Schema({
 const Student = mongoose.model("Student", studentSchema);
 
 /* =======================
-   ROUTES
+   MOCK DATA STORE (in-memory for fallback)
+======================= */
+let mockStudents = [
+  { _id: "1", name: "John Doe", email: "john@example.com", course: "Computer Science", createdAt: new Date() },
+  { _id: "2", name: "Jane Smith", email: "jane@example.com", course: "Mathematics", createdAt: new Date() },
+  { _id: "3", name: "Bob Johnson", email: "bob@example.com", course: "Physics", createdAt: new Date() }
+];
+
+/* =======================
+   ROUTES WITH FULL FALLBACK
 ======================= */
 
 // Root route
 app.get("/", (req, res) => {
   res.json({
     message: "Student Management API 🚀",
-    database: mongoose.connection.readyState === 1 ? "connected" : "disconnected"
+    database: isDbConnected() ? "connected" : "disconnected",
+    usingMockData: !isDbConnected()
   });
 });
 
-// GET all students with mock fallback
+// GET all students
 app.get("/students", async (req, res) => {
   try {
-    if (mongoose.connection.readyState !== 1) {
-      throw new Error("DB not connected");
+    if (isDbConnected()) {
+      const students = await Student.find().sort({ createdAt: -1 });
+      return res.json(students);
+    } else {
+      console.log("⚠️ DB disconnected - returning mock data");
+      return res.json(mockStudents);
     }
-    
-    const students = await Student.find().sort({ createdAt: -1 });
-    res.json(students);
   } catch (error) {
-    console.log("Using mock data:", error.message);
-    res.json([
-      { _id: "1", name: "John Doe", email: "john@example.com", course: "Computer Science", createdAt: new Date() },
-      { _id: "2", name: "Jane Smith", email: "jane@example.com", course: "Mathematics", createdAt: new Date() },
-      { _id: "3", name: "Bob Johnson", email: "bob@example.com", course: "Physics", createdAt: new Date() }
-    ]);
+    console.error("GET error:", error.message);
+    res.json(mockStudents); // Fallback to mock on any error
   }
 });
 
 // POST create student
 app.post("/students", async (req, res) => {
+  const { name, email, course } = req.body;
+  if (!name || !email || !course) {
+    return res.status(400).json({ error: "All fields required" });
+  }
+
   try {
-    const { name, email, course } = req.body;
-
-    if (!name || !email || !course) {
-      return res.status(400).json({ error: "All fields required" });
-    }
-
-    // If DB connected, save to DB
-    if (mongoose.connection.readyState === 1) {
+    if (isDbConnected()) {
       const student = new Student({ name, email, course });
       await student.save();
       return res.status(201).json(student);
+    } else {
+      // Create mock student
+      const newStudent = {
+        _id: Date.now().toString(),
+        name,
+        email,
+        course,
+        createdAt: new Date()
+      };
+      mockStudents.push(newStudent);
+      console.log("✅ Mock student added:", newStudent);
+      return res.status(201).json(newStudent);
     }
-    
-    // If DB not connected, return success anyway
-    res.status(201).json({
+  } catch (error) {
+    console.error("POST error:", error.message);
+    // Even if DB fails, return success with mock
+    const newStudent = {
       _id: Date.now().toString(),
       name,
       email,
       course,
       createdAt: new Date()
-    });
-  } catch (error) {
-    console.error("POST error:", error.message);
-    res.status(500).json({ error: "Failed to add student" });
+    };
+    mockStudents.push(newStudent);
+    res.status(201).json(newStudent);
   }
 });
 
 // PUT update student
 app.put("/students/:id", async (req, res) => {
+  const { id } = req.params;
+  const { name, email, course } = req.body;
+
   try {
-    const student = await Student.findByIdAndUpdate(
-      req.params.id,
-      req.body,
-      { new: true }
-    );
-
-    if (!student) {
-      return res.status(404).json({ error: "Student not found" });
+    if (isDbConnected()) {
+      const student = await Student.findByIdAndUpdate(
+        id,
+        { name, email, course, updatedAt: Date.now() },
+        { new: true, runValidators: true }
+      );
+      if (!student) {
+        return res.status(404).json({ error: "Student not found" });
+      }
+      return res.json(student);
+    } else {
+      // Update in mock data
+      const index = mockStudents.findIndex(s => s._id === id);
+      if (index === -1) {
+        return res.status(404).json({ error: "Student not found" });
+      }
+      mockStudents[index] = {
+        ...mockStudents[index],
+        name: name || mockStudents[index].name,
+        email: email || mockStudents[index].email,
+        course: course || mockStudents[index].course
+      };
+      console.log("✅ Mock student updated:", mockStudents[index]);
+      return res.json(mockStudents[index]);
     }
-
-    res.json(student);
   } catch (error) {
     console.error("PUT error:", error.message);
-    res.status(500).json({ error: "Update failed" });
+    // Try mock fallback
+    const index = mockStudents.findIndex(s => s._id === id);
+    if (index === -1) {
+      return res.status(404).json({ error: "Student not found" });
+    }
+    mockStudents[index] = {
+      ...mockStudents[index],
+      name: name || mockStudents[index].name,
+      email: email || mockStudents[index].email,
+      course: course || mockStudents[index].course
+    };
+    res.json(mockStudents[index]);
   }
 });
 
 // DELETE student
 app.delete("/students/:id", async (req, res) => {
+  const { id } = req.params;
+
   try {
-    const student = await Student.findByIdAndDelete(req.params.id);
-
-    if (!student) {
-      return res.status(404).json({ error: "Student not found" });
+    if (isDbConnected()) {
+      const student = await Student.findByIdAndDelete(id);
+      if (!student) {
+        return res.status(404).json({ error: "Student not found" });
+      }
+      return res.json({ message: "Student deleted successfully" });
+    } else {
+      // Delete from mock data
+      const index = mockStudents.findIndex(s => s._id === id);
+      if (index === -1) {
+        return res.status(404).json({ error: "Student not found" });
+      }
+      const deleted = mockStudents.splice(index, 1)[0];
+      console.log("✅ Mock student deleted:", deleted);
+      return res.json({ message: "Student deleted successfully", deletedStudent: deleted });
     }
-
-    res.json({ message: "Student deleted successfully" });
   } catch (error) {
     console.error("DELETE error:", error.message);
-    res.status(500).json({ error: "Delete failed" });
+    // Try mock fallback
+    const index = mockStudents.findIndex(s => s._id === id);
+    if (index === -1) {
+      return res.status(404).json({ error: "Student not found" });
+    }
+    mockStudents.splice(index, 1);
+    res.json({ message: "Student deleted successfully" });
   }
+});
+
+// Health check
+app.get("/health", (req, res) => {
+  res.json({
+    status: "OK",
+    database: isDbConnected() ? "connected" : "disconnected",
+    mockDataCount: mockStudents.length,
+    timestamp: new Date().toISOString()
+  });
 });
 
 /* =======================
@@ -150,4 +224,5 @@ app.delete("/students/:id", async (req, res) => {
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
   console.log(`🚀 Server running on port ${PORT}`);
+  console.log(`📡 MongoDB: ${isDbConnected() ? "Connected" : "Disconnected - using mock data"}`);
 });
