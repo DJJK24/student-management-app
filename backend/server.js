@@ -24,7 +24,7 @@ app.use(express.json());
    MONGODB CONNECTION
 ======================= */
 // ✅ USE YOUR NEW CREDENTIALS
-const MONGODB_URI = "mongodb+srv://acetianscrew_db_user:YOUR_PASSWORD_HERE@cluster0.soktwfv.mongodb.net/studentDB?retryWrites=true&w=majority&socketTimeoutMS=360000";
+const MONGODB_URI = "mongodb+srv://acetianscrew_db_user:iHNCCrRMoHOIDw4R@cluster0.soktwfv.mongodb.net/studentDB?retryWrites=true&w=majority&socketTimeoutMS=360000";
 
 mongoose.connect(MONGODB_URI, {
   useNewUrlParser: true,
