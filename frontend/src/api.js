@@ -1,34 +1,47 @@
-import axios from "axios";
+import axios from 'axios';
 
-const API = axios.create({
-  baseURL: "https://student-management-app-1-mfw3.onrender.com",
-  headers: {
-    "Content-Type": "application/json",
-  },
-});
+// ✅ YOUR CORRECT LIVE BACKEND URL
+const API_BASE_URL = process.env.REACT_APP_API_URL || 'https://student-management-app-1-mfw3.onrender.com';
+const API_URL = `${API_BASE_URL}/students`;
 
-// GET all students
 export const fetchStudents = async () => {
-  const response = await API.get("/students");
-  return response.data;
+  try {
+    const response = await axios.get(API_URL);
+    return response.data;
+  } catch (error) {
+    console.error('Error fetching students:', error);
+    return [];
+  }
 };
 
-// ADD student
 export const addStudent = async (student) => {
-  const response = await API.post("/students", student);
-  return response.data;
+  try {
+    const response = await axios.post(API_URL, student);
+    return response.data;
+  } catch (error) {
+    console.error('Error adding student:', error);
+    throw error;
+  }
 };
 
-// UPDATE student
 export const updateStudent = async (id, student) => {
-  const response = await API.put(`/students/${id}`, student);
-  return response.data;
+  try {
+    const response = await axios.put(`${API_URL}/${id}`, student);
+    return response.data;
+  } catch (error) {
+    console.error('Error updating student:', error);
+    throw error;
+  }
 };
 
-// DELETE student
 export const deleteStudent = async (id) => {
-  const response = await API.delete(`/students/${id}`);
-  return response.data;
+  try {
+    const response = await axios.delete(`${API_URL}/${id}`);
+    return response.data;
+  } catch (error) {
+    console.error('Error deleting student:', error);
+    throw error;
+  }
 };
 
-export default API;
+export default { fetchStudents, addStudent, updateStudent, deleteStudent };

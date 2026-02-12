@@ -1,87 +1,76 @@
-const express = require("express");
-const mongoose = require("mongoose");
-const cors = require("cors");
+import { useState, useEffect } from "react";
+import StudentForm from "./components/StudentForm";
+import StudentList from "./components/StudentList";
+import "./App.css";
 
-const app = express();
-const PORT = process.env.PORT || 3000;
+function App() {
+  const [dark, setDark] = useState(false);
+  const [refreshList, setRefreshList] = useState(false);
+  const [backendStatus, setBackendStatus] = useState("Checking...");
 
-/* ===== CORS SETUP ===== */
-app.use(cors({
-  origin: "https://student-management-app-dj.netlify.app",
-  methods: ["GET", "POST", "PUT", "DELETE"],
-  allowedHeaders: ["Content-Type"]
-}));
+  // Test backend connection on load
+  useEffect(() => {
+    const testConnection = async () => {
+      try {
+        // const response = await fetch('https://student-management-app-1-mfw3.onrender.com/students');
+        // const data = await response.json();
+        const data = await fetchStudents();
 
-app.options("*", cors()); // handle preflight requests
 
-app.use(express.json());
+        setBackendStatus(`✅ Connected (${data.length} students)`);
+      } catch (error) {
+        setBackendStatus(`❌ Connection failed: ${error.message}`);
+      }
+    };
+    testConnection();
+  }, []);
 
-/* ===== CONNECT DATABASE ===== */
-mongoose.connect(process.env.MONGO_URI, {
-  useNewUrlParser: true,
-  useUnifiedTopology: true
-})
-.then(() => console.log("✅ MongoDB connected"))
-.catch(err => console.error("❌ MongoDB error:", err));
+  const handleStudentAdded = () => {
+    setRefreshList(!refreshList); // Trigger refresh
+  };
 
-/* ===== DEFINE STUDENT SCHEMA ===== */
-const Student = mongoose.model(
-  "Student",
-  new mongoose.Schema({
-    name: String,
-    email: String,
-    course: String,
-    age: Number
-  })
-);
+  return (
+    <div className={dark ? "app dark" : "app"}>
+      <header className="app-header">
+        <button className="toggle-btn" onClick={() => setDark(!dark)}>
+          {dark ? "🌞 Light" : "🌙 Dark"}
+        </button>
+        
+        <div className="header-content">
+          <h1 className="title">🎓 Student Management System</h1>
+          <p className="subtitle">Manage your student records efficiently</p>
+          <div className="backend-status" style={{
+            background: backendStatus.includes('✅') ? '#4CAF50' : '#f44336',
+            color: 'white',
+            padding: '5px 15px',
+            borderRadius: '20px',
+            fontSize: '14px',
+            marginTop: '10px',
+            display: 'inline-block'
+          }}>
+            {backendStatus}
+          </div>
+        </div>
+      </header>
 
-/* ===== ROUTES ===== */
-app.get("/", (req, res) => {
-  res.send("🎓 Backend is live!");
-});
+      <div className="content-container">
+        <div className="form-column">
+          <StudentForm onStudentAdded={handleStudentAdded} />
+        </div>
+        
+        <div className="list-column">
+          <StudentList key={refreshList} />
+        </div>
+      </div>
 
-app.get("/students", async (req, res) => {
-  try {
-    const students = await Student.find();
-    res.json(students);
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
-});
+      <footer className="app-footer">
+        <div className="footer-content">
+          <p>© {new Date().getFullYear()} Student Management System</p>
+          <p className="tech-stack">SUCESS OF LIFE</p>
+        </div>
+      </footer>
+    </div>
+  );
+}
 
-app.post("/students", async (req, res) => {
-  try {
-    const student = new Student(req.body);
-    await student.save();
-    res.status(201).json(student);
-  } catch (err) {
-    res.status(400).json({ error: err.message });
-  }
-});
-
-app.put("/students/:id", async (req, res) => {
-  try {
-    const updatedStudent = await Student.findByIdAndUpdate(
-      req.params.id,
-      req.body,
-      { new: true }
-    );
-    res.json(updatedStudent);
-  } catch (err) {
-    res.status(400).json({ error: err.message });
-  }
-});
-
-app.delete("/students/:id", async (req, res) => {
-  try {
-    await Student.findByIdAndDelete(req.params.id);
-    res.json({ message: "Deleted successfully" });
-  } catch (err) {
-    res.status(400).json({ error: err.message });
-  }
-});
-
-/* ===== START SERVER ===== */
-app.listen(PORT, () => {
-  console.log(`🚀 Server running on port ${PORT}`);
-});
+export default App;

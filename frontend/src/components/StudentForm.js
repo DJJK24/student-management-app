@@ -1,6 +1,6 @@
 // src/components/StudentForm.js
 import React, { useState } from 'react';
-import { addStudent } from '../api'; // CHANGED: from '../services/api' to '../api'
+import { addStudent } from '../api'; 
 import './StudentForm.css';
 
 function StudentForm({ onStudentAdded }) {
