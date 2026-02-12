@@ -23,14 +23,15 @@ app.use(express.json());
 /* =======================
    MONGODB CONNECTION - UPDATED
 ======================= */
-const MONGODB_URI = "mongodb://acetianscrew_db_user:NP9tq9SLxSLOzhWS@cluster0-shard-00-00.soktwfv.mongodb.net:27017,cluster0-shard-00-01.soktwfv.mongodb.net:27017,cluster0-shard-00-02.soktwfv.mongodb.net:27017/studentDB?ssl=true&replicaSet=atlas-941nfa-shard-0&authSource=admin&retryWrites=true";mongoose.connect(MONGODB_URI, {
-  useNewUrlParser: true,
-  useUnifiedTopology: true,
+const MONGODB_URI = process.env.MONGO_URI; // <-- Read from environment
+
+mongoose.connect(MONGODB_URI, {
   serverSelectionTimeoutMS: 30000,
   socketTimeoutMS: 45000,
 })
 .then(() => console.log("✅ MongoDB Connected Successfully"))
 .catch(err => console.error("❌ MongoDB Error:", err.message));
+
 
 // Connection state helpers
 const isDbConnected = () => mongoose.connection.readyState === 1;
