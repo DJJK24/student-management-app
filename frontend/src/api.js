@@ -1,6 +1,5 @@
 import axios from 'axios';
 
-// ✅ YOUR CORRECT LIVE BACKEND URL
 const API_BASE_URL = process.env.REACT_APP_API_URL || 'https://student-management-app-1-mfw3.onrender.com';
 const API_URL = `${API_BASE_URL}/students`;
 
@@ -44,4 +43,11 @@ export const deleteStudent = async (id) => {
   }
 };
 
-export default { fetchStudents, addStudent, updateStudent, deleteStudent };
+const api = {
+  fetchStudents,
+  addStudent,
+  updateStudent,
+  deleteStudent
+};
+
+export default api;

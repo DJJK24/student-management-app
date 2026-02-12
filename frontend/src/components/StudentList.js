@@ -1,9 +1,9 @@
-// src/components/StudentList.js - REMOVE THE PERMANENT OVERRIDE SYSTEM AT THE TOP
+// src/components/StudentList.js
 import { useEffect, useState } from "react";
-import { fetchStudents, deleteStudent, updateStudent } from "../api"; // CHANGED: from "../services/api" to "../api"
+import { fetchStudents, deleteStudent, updateStudent } from "../api";
 import "./StudentList.css";
 
-function StudentList() {
+function StudentList({ onSelectStudent, onSearchTyping }) {  // ✅ new prop
   const [students, setStudents] = useState([]);
   const [editId, setEditId] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -12,6 +12,8 @@ function StudentList() {
     email: "",
     course: "",
   });
+  const [searchTerm, setSearchTerm] = useState(""); // ✅ for search input
+  const [typingTimeout, setTypingTimeout] = useState(null); // ✅ debounce
 
   const loadStudents = async () => {
     setLoading(true);
@@ -29,7 +31,25 @@ function StudentList() {
     loadStudents();
   }, []);
 
-  const handleDelete = async (id) => {
+  // ✅ Debounced search trigger
+  const handleSearchChange = (e) => {
+    const value = e.target.value;
+    setSearchTerm(value);
+
+    // Clear previous timeout
+    if (typingTimeout) clearTimeout(typingTimeout);
+
+    // Set new timeout – after 2 seconds of inactivity
+    const timeout = setTimeout(() => {
+      if (value.trim() && onSearchTyping) {
+        onSearchTyping(value); // Open chatbot with this search term
+      }
+    }, 2000);
+    setTypingTimeout(timeout);
+  };
+
+  const handleDelete = async (id, e) => {
+    e?.stopPropagation();
     if (window.confirm("Are you sure you want to delete this student?")) {
       try {
         await deleteStudent(id);
@@ -41,7 +61,8 @@ function StudentList() {
     }
   };
 
-  const startEdit = (student) => {
+  const startEdit = (student, e) => {
+    e?.stopPropagation();
     setEditId(student._id);
     setEditData({
       name: student.name,
@@ -51,10 +72,12 @@ function StudentList() {
   };
 
   const handleEditChange = (e) => {
+    e.stopPropagation();
     setEditData({ ...editData, [e.target.name]: e.target.value });
   };
 
-  const saveEdit = async (id) => {
+  const saveEdit = async (id, e) => {
+    e?.stopPropagation();
     try {
       await updateStudent(id, editData);
       setEditId(null);
@@ -65,10 +88,50 @@ function StudentList() {
     }
   };
 
+  const cancelEdit = (e) => {
+    e?.stopPropagation();
+    setEditId(null);
+  };
+
+  const handleCardClick = (student) => {
+    if (editId !== student._id && onSelectStudent) {
+      onSelectStudent(student);
+    }
+  };
+
+  // Filter students based on search term (optional)
+  const filteredStudents = students.filter(student =>
+    student.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    student.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    student.course?.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
   return (
     <div className="list-container">
-      <h2>📋 Student List</h2>
+      <h2>Student List</h2>
       
+      {/* SEARCH BAR – NEW */}
+      <div className="search-container" style={{ marginBottom: '20px' }}>
+        <input
+          type="text"
+          placeholder="Search students or type a course interest..."
+          value={searchTerm}
+          onChange={handleSearchChange}
+          style={{
+            width: '100%',
+            padding: '12px 16px',
+            border: '1px solid #ddd',
+            borderRadius: '30px',
+            fontSize: '16px',
+            outline: 'none',
+            boxShadow: '0 2px 8px rgba(0,0,0,0.05)'
+          }}
+        />
+        <p style={{ fontSize: '12px', color: '#d1cbcb', marginTop: '5px' }}>
+          ⏱️ Stop typing for 2 seconds – the Study Advisor will appear with suggestions!
+        </p>
+      </div>
+
       {loading ? (
         <div className="loading-container">
           <div className="spinner"></div>
@@ -79,15 +142,22 @@ function StudentList() {
           <div className="list-header">
             <h2>Student List</h2>
             <div className="stats">
-              <span className="stat-badge">{students.length} Students</span>
+              <span className="stat-badge">{filteredStudents.length} Students</span>
             </div>
           </div>
           
           <div className="students-grid">
-            {students.map((student) => (
-              <div className="student-card" key={student._id}>
+            {filteredStudents.map((student) => (
+              <div
+                className="student-card"
+                key={student._id}
+                onClick={() => handleCardClick(student)}
+                style={{
+                  cursor: editId !== student._id && onSelectStudent ? 'pointer' : 'default'
+                }}
+              >
                 {editId === student._id ? (
-                  <div className="edit-mode">
+                  <div className="edit-mode" onClick={(e) => e.stopPropagation()}>
                     <div className="edit-header">
                       <h3>Edit Student</h3>
                     </div>
@@ -96,6 +166,7 @@ function StudentList() {
                         name="name"
                         value={editData.name}
                         onChange={handleEditChange}
+                        onClick={(e) => e.stopPropagation()}
                         placeholder="Student Name"
                         className="edit-input"
                       />
@@ -103,6 +174,7 @@ function StudentList() {
                         name="email"
                         value={editData.email}
                         onChange={handleEditChange}
+                        onClick={(e) => e.stopPropagation()}
                         placeholder="Email Address"
                         className="edit-input"
                       />
@@ -110,14 +182,21 @@ function StudentList() {
                         name="course"
                         value={editData.course}
                         onChange={handleEditChange}
+                        onClick={(e) => e.stopPropagation()}
                         placeholder="Course Name"
                         className="edit-input"
                       />
                       <div className="edit-actions">
-                        <button className="save-btn" onClick={() => saveEdit(student._id)}>
+                        <button
+                          className="save-btn"
+                          onClick={(e) => saveEdit(student._id, e)}
+                        >
                           Save
                         </button>
-                        <button className="cancel-btn" onClick={() => setEditId(null)}>
+                        <button
+                          className="cancel-btn"
+                          onClick={cancelEdit}
+                        >
                           Cancel
                         </button>
                       </div>
@@ -147,16 +226,16 @@ function StudentList() {
                     </div>
 
                     <div className="student-actions">
-                      <button 
-                        className="action-btn edit-action" 
-                        onClick={() => startEdit(student)}
+                      <button
+                        className="action-btn edit-action"
+                        onClick={(e) => startEdit(student, e)}
                         title="Edit"
                       >
                         Edit
                       </button>
-                      <button 
-                        className="action-btn delete-action" 
-                        onClick={() => handleDelete(student._id)}
+                      <button
+                        className="action-btn delete-action"
+                        onClick={(e) => handleDelete(student._id, e)}
                         title="Delete"
                       >
                         Delete
