@@ -23,8 +23,7 @@ app.use(express.json());
 /* =======================
    MONGODB CONNECTION - UPDATED
 ======================= */
-const API_BASE_URL = 'https://student-management-app-1-mfw3.onrender.com';
-const API_URL = `${API_BASE_URL}/students`;
+const API_BASE_URL = 'https://student-management-app-1-mfw3.onrender.com/students';
 
 mongoose.connect(MONGODB_URI, {
   serverSelectionTimeoutMS: 30000,
