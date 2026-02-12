@@ -23,9 +23,7 @@ app.use(express.json());
 /* =======================
    MONGODB CONNECTION - UPDATED
 ======================= */
-const MONGODB_URI = "mongodb+srv://acetianscrew_db_user:NP9tq9SLxSLOzhWS@cluster0.soktwfv.mongodb.net/studentDB?retryWrites=true&w=majority";
-
-mongoose.connect(MONGODB_URI, {
+const MONGODB_URI = "mongodb://acetianscrew_db_user:NP9tq9SLxSLOzhWS@cluster0-shard-00-00.soktwfv.mongodb.net:27017,cluster0-shard-00-01.soktwfv.mongodb.net:27017,cluster0-shard-00-02.soktwfv.mongodb.net:27017/studentDB?ssl=true&replicaSet=atlas-941nfa-shard-0&authSource=admin&retryWrites=true";mongoose.connect(MONGODB_URI, {
   useNewUrlParser: true,
   useUnifiedTopology: true,
   serverSelectionTimeoutMS: 30000,
