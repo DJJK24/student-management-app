@@ -23,7 +23,7 @@ app.use(express.json());
 /* =======================
    MONGODB CONNECTION - UPDATED
 ======================= */
-const MONGODB_URI = "mongodb+srv://acetianscrew_db_user:PGSAcUxPubxeB9Gs@cluster0.soktwfv.mongodb.net/studentDB?retryWrites=true&w=majority";
+const MONGODB_URI = "mongodb+srv://acetianscrew_db_user:NP9tq9SLxSLOzhWS@cluster0.soktwfv.mongodb.net/studentDB?retryWrites=true&w=majority";
 
 mongoose.connect(MONGODB_URI, {
   useNewUrlParser: true,
